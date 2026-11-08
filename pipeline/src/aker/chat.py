@@ -6,11 +6,11 @@ Handles iOS ("[08/11/2026, 09:15:32] Name: text") and Android
 import csv
 import re
 from collections import defaultdict
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from aker.config import FIRST_SATURDAY, MESSAGES_CSV, OFF_SEASON_MONTHS, SENDER_ALIASES
+from aker.config import FIRST_MATCHDAY, OFF_SEASON_MONTHS, SENDER_ALIASES
 from aker.models import ChatWindow, Message
 
 IOS = re.compile(r"^\[(\d{1,2}/\d{1,2}/\d{2,4}),\s*(\d{1,2}:\d{2})(?::\d{2})?\]\s*([^:]+?):\s?(.*)$")
@@ -40,21 +40,20 @@ def parse_export(path: Path) -> list[Message]:
     ]
 
 
-def write_messages(messages: list[Message], path: Path = MESSAGES_CSV) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
+def write_messages(messages: Iterable[Message], path: Path) -> None:
     with path.open("w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["sent_at", "sender", "text"])
         w.writerows((m.sent_at.isoformat(), m.sender, m.text) for m in messages)
 
 
-def read_messages(path: Path = MESSAGES_CSV) -> Iterator[Message]:
+def read_messages(path: Path) -> Iterator[Message]:
     with path.open() as f:
         for row in csv.DictReader(f):
             yield Message(datetime.fromisoformat(row["sent_at"]), row["sender"], row["text"])
 
 
-def _aker_saturday(ts: datetime) -> date | None:
+def _matchday_for(ts: datetime) -> date | None:
     """The Saturday a message belongs to: Friday from 18:00, or any time on Saturday."""
     if ts.weekday() == 4 and ts.hour >= 18:
         return ts.date() + timedelta(days=1)
@@ -63,11 +62,11 @@ def _aker_saturday(ts: datetime) -> date | None:
     return None
 
 
-def saturday_windows(messages: Iterator[Message] | None = None) -> list[ChatWindow]:
-    first = date.fromisoformat(FIRST_SATURDAY)
+def matchday_windows(messages: Iterable[Message]) -> list[ChatWindow]:
+    first = date.fromisoformat(FIRST_MATCHDAY)
     grouped: dict[date, list[Message]] = defaultdict(list)
-    for m in messages if messages is not None else read_messages():
-        sat = _aker_saturday(m.sent_at)
-        if sat and sat >= first and sat.month not in OFF_SEASON_MONTHS:
-            grouped[sat].append(m)
-    return [ChatWindow(sat, tuple(msgs)) for sat, msgs in sorted(grouped.items())]
+    for m in messages:
+        day = _matchday_for(m.sent_at)
+        if day and day >= first and day.month not in OFF_SEASON_MONTHS:
+            grouped[day].append(m)
+    return [ChatWindow(day, tuple(msgs)) for day, msgs in sorted(grouped.items())]

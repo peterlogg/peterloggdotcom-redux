@@ -1,6 +1,6 @@
 """Classify each Saturday's chat window with Jev (TypeSafe System One): typed choices + calibrated confidence.
 
-Only windows not already in picks_jev.jsonl are sent.
+Weeks already in the store are skipped.
 """
 import asyncio
 import logging
@@ -8,18 +8,17 @@ from collections.abc import Sequence
 
 from typesafe_sdk import AsyncTypeSafeClient, Choice, Noul, SystemOneResponse
 
-from aker.config import JEV_MODEL, JEV_PICKS, PEOPLE
-from aker.models import MARKET_DESCRIPTIONS, NO_TEAM, ChatWindow, JevPick, JevWeek, Market
+from aker.config import JEV_MODEL, PEOPLE
+from aker.models import MARKET_DESCRIPTIONS, NO_TEAM, ChatWindow, Club, Extracted, ExtractedFile, JevPick, JevWeek, Market
 from aker.prompts import AKER_CONTEXT
-from aker.results import clubs
 
 log = logging.getLogger(__name__)
 CONCURRENCY = 8
 
 
-def _questions() -> dict[str, Choice | Noul]:
+def _questions(clubs: Sequence[Club]) -> dict[str, Choice | Noul]:
     team_options = {NO_TEAM: "This person did not name a team for the group acca"} | {
-        c.name: c.description for c in clubs()
+        c.name: c.description for c in clubs
     }
     questions: dict[str, Choice | Noul] = {
         "aker_on": Noul(instructions="The friends organised their group accumulator bet with team picks on this Saturday."),
@@ -40,7 +39,7 @@ def _questions() -> dict[str, Choice | Noul]:
     return questions
 
 
-def _to_week(window: ChatWindow, response: SystemOneResponse) -> JevWeek:
+def _to_week(response: SystemOneResponse) -> JevWeek:
     a = response.answers
 
     def pick(person: str) -> JevPick:
@@ -58,7 +57,6 @@ def _to_week(window: ChatWindow, response: SystemOneResponse) -> JevWeek:
         )
 
     return JevWeek(
-        saturday=window.saturday,
         aker_on=a["aker_on"].noul,
         placer=a["placer"].choice,
         placer_confidence=a["placer"].confidence,
@@ -67,37 +65,27 @@ def _to_week(window: ChatWindow, response: SystemOneResponse) -> JevWeek:
     )
 
 
-def load_jev_weeks() -> list[JevWeek]:
-    if not JEV_PICKS.exists():
-        return []
-    return [JevWeek.from_json(line) for line in JEV_PICKS.read_text().splitlines()]
-
-
-async def _extract(todo: Sequence[ChatWindow]) -> int:
-    questions = _questions()
+async def _classify_all(todo: Sequence[ChatWindow], clubs: Sequence[Club], store: ExtractedFile[JevWeek]) -> int:
+    questions = _questions(clubs)
     sem = asyncio.Semaphore(CONCURRENCY)
 
-    async def classify(client: AsyncTypeSafeClient, window: ChatWindow) -> JevWeek:
-        state = {"context": AKER_CONTEXT, "saturday": window.saturday.isoformat(), "chat": window.transcript}
+    async def classify(client: AsyncTypeSafeClient, window: ChatWindow) -> Extracted[JevWeek]:
+        state = {"context": AKER_CONTEXT, "matchday": window.matchday.isoformat(), "chat": window.transcript}
         async with sem:
-            return _to_week(window, await client.system_one(state=state, questions=questions))
+            response = await client.system_one(state=state, questions=questions)
+        return Extracted(window.matchday, _to_week(response))
 
-    JEV_PICKS.parent.mkdir(parents=True, exist_ok=True)
     written = 0
     async with AsyncTypeSafeClient(model=JEV_MODEL) as client:  # reads TYPESAFE_API_KEY
-        tasks = [asyncio.create_task(classify(client, w)) for w in todo]
-        with JEV_PICKS.open("a") as f:
-            for task in asyncio.as_completed(tasks):
-                f.write((await task).to_json() + "\n")
-                f.flush()
-                written += 1
-                if written % 50 == 0:
-                    log.info("Jev: %d/%d", written, len(todo))
+        for task in asyncio.as_completed([classify(client, w) for w in todo]):
+            written += store.append([await task])
+            if written % 50 == 0:
+                log.info("Jev: %d/%d", written, len(todo))
     return written
 
 
-def extract(windows: Sequence[ChatWindow]) -> int:
-    done = {w.saturday for w in load_jev_weeks()}
-    todo = [w for w in windows if w.saturday not in done]
+def extract(windows: Sequence[ChatWindow], clubs: Sequence[Club], store: ExtractedFile[JevWeek]) -> int:
+    done = store.by_matchday().keys()
+    todo = [w for w in windows if w.matchday not in done]
     log.info("Jev: %d windows to classify (%d already done)", len(todo), len(done))
-    return asyncio.run(_extract(todo)) if todo else 0
+    return asyncio.run(_classify_all(todo, clubs, store)) if todo else 0

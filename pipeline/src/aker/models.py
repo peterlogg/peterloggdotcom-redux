@@ -1,13 +1,13 @@
 """Domain records (dataclasses) and the schema Claude fills in (pydantic, required by LangChain)."""
-from __future__ import annotations
 
-import json
-from dataclasses import asdict, dataclass, field
+from collections.abc import Iterable
+from dataclasses import dataclass, field
 from datetime import date, datetime
 from enum import StrEnum
+from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 NO_TEAM = "no_team"
 Person = Literal["Dom", "Peter", "Russell", "Simon"]
@@ -44,7 +44,7 @@ class Message:
 class ChatWindow:
     """Friday 18:00 → Saturday 23:59 of chat around one aker Saturday."""
 
-    saturday: date
+    matchday: date
     messages: tuple[Message, ...]
 
     @property
@@ -86,10 +86,49 @@ class Week(BaseModel):
     notes: str = Field(description="Anything odd: picks changed, someone picked for another, bet void, etc.")
 
 
-class ClaudeWeek(Week):
-    """A Week as stored on disk, keyed by its Saturday."""
+# --- Refereed selections: every pick as a list of conditions that must all come true ---------
 
-    saturday: date
+
+class ConditionType(StrEnum):
+    WIN = "win"  # the named team wins
+    DRAW = "draw"  # the match is drawn
+    DOUBLE_CHANCE = "double_chance"  # the named team wins or draws
+    OVER_GOALS = "over_goals"  # total match goals > line
+    UNDER_GOALS = "under_goals"  # total match goals < line
+    BTTS = "btts"  # both teams score
+    BTTS_NO = "btts_no"  # at least one team fails to score
+    TEAM_OVER_GOALS = "team_over_goals"  # the named team's goals > line
+    OTHER = "other"  # anything we can't settle from the final score
+
+
+class Condition(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: ConditionType
+    line: float | None = Field(description="Goal line for over/under types, e.g. 2.5; null otherwise")
+
+
+class Selection(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    person: Person
+    team: str = Field(
+        description="Canonical club name. For team bets, the team backed; for whole-match bets "
+        "(overs, btts, draw), either club in that match, preferring the first one mentioned."
+    )
+    conditions: list[Condition] = Field(description="All must come true, e.g. 'Rangers and over 2.5' → [win, over_goals 2.5]")
+    selection_text: str = Field(description="The pick as written in chat")
+    evidence: str = Field(description="Timestamp + message where the final pick was stated")
+    confident: bool
+
+
+class RefereedWeek(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    aker_on: bool
+    placer: Person | Literal["unknown"]
+    selections: list[Selection] = Field(description="One per person who made a pick; empty if no aker")
+    notes: str = Field(description="How disputes were resolved, and anything odd")
 
 
 # --- Jev extraction --------------------------------------------------------------------------
@@ -108,7 +147,6 @@ class JevPick:
 
 @dataclass(frozen=True)
 class JevWeek:
-    saturday: date
     aker_on: float  # P(aker organised this week)
     placer: str
     placer_confidence: float
@@ -118,17 +156,41 @@ class JevWeek:
     def pick_for(self, person: str) -> JevPick:
         return next(p for p in self.picks if p.person == person)
 
-    def to_json(self) -> str:
-        return json.dumps(asdict(self), default=str)
 
-    @classmethod
-    def from_json(cls, line: str) -> JevWeek:
-        d = json.loads(line)
-        picks = tuple(
-            JevPick(**{**p, "market": Market(p["market"]), "team_alternatives": tuple(map(tuple, p["team_alternatives"]))})
-            for p in d.pop("picks")
-        )
-        return cls(**{**d, "saturday": date.fromisoformat(d["saturday"]), "picks": picks})
+# --- Storage -------------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Extracted[W]:
+    """One extractor's answer (a Week, JevWeek or RefereedWeek) for one Saturday."""
+
+    matchday: date
+    week: W
+
+
+class ExtractedFile[W]:
+    """Append-only JSON-lines file of Extracted[W]; extractors append per week, so runs resume."""
+
+    def __init__(self, path: Path, week_type: type[W]) -> None:
+        self.path = path
+        self._adapter = TypeAdapter(Extracted[week_type])
+
+    def read(self) -> list[Extracted[W]]:
+        if not self.path.exists():
+            return []
+        return [self._adapter.validate_json(line) for line in self.path.read_text().splitlines()]
+
+    def by_matchday(self) -> dict[date, W]:
+        return {e.matchday: e.week for e in self.read()}
+
+    def append(self, records: Iterable[Extracted[W]]) -> int:
+        written = 0
+        with self.path.open("a") as f:
+            for record in records:
+                f.write(self._adapter.dump_json(record).decode() + "\n")
+                f.flush()
+                written += 1
+        return written
 
 
 # --- Review ----------------------------------------------------------------------------------
@@ -142,7 +204,7 @@ class ReviewStatus(StrEnum):
 
 @dataclass(frozen=True)
 class ReviewRow:
-    saturday: date
+    matchday: date
     person: str
     status: ReviewStatus
     claude_team: str

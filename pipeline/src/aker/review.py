@@ -1,19 +1,18 @@
-"""Merge Claude + Jev extractions into a review sheet.
+"""Compare the Claude and Jev extractions pick by pick.
 
 One row per (Saturday, person) where either model found a pick:
   agree     same club, both confident → auto-accepted
   low_conf  same club, but Jev's confidence is low or Claude flagged it → quick check
-  disagree  different clubs → needs a human
-Edit final_team / final_market / exclude in data/picks_review.csv.
+  disagree  different clubs → needs refereeing
 """
 import csv
-from collections import Counter
+from collections.abc import Mapping, Sequence
 from dataclasses import asdict, fields
+from datetime import date
+from pathlib import Path
 
-from aker.config import PEOPLE, PICKS_REVIEW_CSV
-from aker.extract_claude import load_claude_weeks
-from aker.extract_jev import load_jev_weeks
-from aker.models import NO_TEAM, ClaudeWeek, JevPick, JevWeek, Pick, ReviewRow, ReviewStatus
+from aker.config import PEOPLE
+from aker.models import NO_TEAM, JevPick, JevWeek, Pick, ReviewRow, ReviewStatus, Week
 
 JEV_AKER_THRESHOLD = 0.5
 JEV_PICKED_THRESHOLD = 0.5
@@ -34,8 +33,7 @@ def _status(claude_team: str, jev_team: str, claude: Pick | None, jev: JevPick |
     return ReviewStatus.AGREE
 
 
-def _rows_for_week(claude_week: ClaudeWeek | None, jev_week: JevWeek | None) -> list[ReviewRow]:
-    saturday = (claude_week or jev_week).saturday
+def _rows_for_week(matchday: date, claude_week: Week | None, jev_week: JevWeek | None) -> list[ReviewRow]:
     claude_picks = {p.person: p for p in claude_week.picks} if claude_week and claude_week.aker_on else {}
     rows = []
     for person in PEOPLE:
@@ -47,7 +45,7 @@ def _rows_for_week(claude_week: ClaudeWeek | None, jev_week: JevWeek | None) -> 
             continue
         market = claude.market if claude else jev.market
         rows.append(ReviewRow(
-            saturday=saturday,
+            matchday=matchday,
             person=person,
             status=_status(claude_team, jev_team, claude, jev),
             claude_team=claude_team,
@@ -65,12 +63,16 @@ def _rows_for_week(claude_week: ClaudeWeek | None, jev_week: JevWeek | None) -> 
     return rows
 
 
-def build_review() -> Counter[ReviewStatus]:
-    claude = {w.saturday: w for w in load_claude_weeks()}
-    jev = {w.saturday: w for w in load_jev_weeks()}
-    rows = [row for sat in sorted(claude.keys() | jev.keys()) for row in _rows_for_week(claude.get(sat), jev.get(sat))]
-    with PICKS_REVIEW_CSV.open("w", newline="") as f:
+def compare(claude: Mapping[date, Week], jev: Mapping[date, JevWeek]) -> list[ReviewRow]:
+    return [
+        row
+        for matchday in sorted(claude.keys() | jev.keys())
+        for row in _rows_for_week(matchday, claude.get(matchday), jev.get(matchday))
+    ]
+
+
+def write_rows(rows: Sequence[ReviewRow], path: Path) -> None:
+    with path.open("w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=[fl.name for fl in fields(ReviewRow)])
         writer.writeheader()
         writer.writerows(asdict(r) for r in rows)
-    return Counter(r.status for r in rows)
