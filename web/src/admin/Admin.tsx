@@ -3,7 +3,9 @@ import type { User } from 'firebase/auth'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Avatar } from '../components/Avatar'
 import { describeBets } from '../lib/people'
-import { ADMIN_EMAILS, auth, loadLabels, loadQueue, saveLabel, signIn, signOutAdmin } from './firebase'
+import {
+  auth, completeEmailLink, loadLabels, loadQueue, saveLabel, sendEmailLink, signInWithGoogle, signOutAdmin,
+} from './firebase'
 import type { LabelDoc, QueueItem, Reason } from './types'
 import './admin.css'
 
@@ -20,30 +22,60 @@ const NEEDS_LINE = new Set(['over_goals', 'under_goals', 'team_over_goals'])
 
 function useAdminUser() {
   const [user, setUser] = useState<User | null | undefined>(undefined)
-  useEffect(() => onAuthStateChanged(auth, setUser), [])
-  return user
+  const [linkError, setLinkError] = useState<string | null>(null)
+  useEffect(() => {
+    completeEmailLink().catch((e: Error) => setLinkError(e.message))
+    return onAuthStateChanged(auth, setUser)
+  }, [])
+  return { user, linkError }
+}
+
+function SignIn({ error }: { error: string | null }) {
+  const [email, setEmail] = useState('')
+  const [sent, setSent] = useState(false)
+  const [sendError, setSendError] = useState<string | null>(null)
+  async function send(e: React.FormEvent) {
+    e.preventDefault()
+    setSendError(null)
+    try {
+      await sendEmailLink(email.trim())
+      setSent(true)
+    } catch (err) {
+      setSendError((err as Error).message)
+    }
+  }
+  return (
+    <main className="page admin-gate">
+      <h1>Aker admin</h1>
+      <button className="primary" onClick={() => signInWithGoogle()}>Sign in with Google</button>
+      <p className="muted">or, for Hotmail / Outlook / other addresses:</p>
+      {sent ? (
+        <p>Check {email} for a sign-in link (it may land in junk). Open it on this device.</p>
+      ) : (
+        <form className="email-form" onSubmit={send}>
+          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@hotmail.com" />
+          <button type="submit">Email me a sign-in link</button>
+        </form>
+      )}
+      {(error || sendError) && <p className="error">{error ?? sendError}</p>}
+    </main>
+  )
 }
 
 export default function Admin() {
-  const user = useAdminUser()
+  const { user, linkError } = useAdminUser()
   if (user === undefined) return <main className="page"><p className="muted">Checking sign-in…</p></main>
-  if (!user) {
-    return (
-      <main className="page admin-gate">
-        <h1>Aker admin</h1>
-        <button className="primary" onClick={() => signIn()}>Sign in with Google</button>
-      </main>
-    )
-  }
-  if (!ADMIN_EMAILS.includes(user.email ?? '')) {
-    return (
-      <main className="page admin-gate">
-        <p>{user.email} isn't an admin.</p>
-        <button onClick={() => signOutAdmin()}>Sign out</button>
-      </main>
-    )
-  }
+  if (!user) return <SignIn error={linkError} />
   return <Labeller email={user.email ?? ''} />
+}
+
+function NotAdmin({ email }: { email: string }) {
+  return (
+    <main className="page admin-gate">
+      <p>{email} isn't on the admin list. Ask Peter to add it.</p>
+      <button onClick={() => signOutAdmin()}>Sign out</button>
+    </main>
+  )
 }
 
 function Labeller({ email }: { email: string }) {
@@ -52,11 +84,13 @@ function Labeller({ email }: { email: string }) {
   const [tab, setTab] = useState<Reason | 'done'>('missing')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [denied, setDenied] = useState(false)
 
   useEffect(() => {
     Promise.all([loadQueue(), loadLabels()])
       .then(([q, l]) => { setQueue(q); setLabels(l) })
-      .catch((e: Error) => setError(e.message))
+      .catch((e: { code?: string; message: string }) =>
+        e.code === 'permission-denied' ? setDenied(true) : setError(e.message))
   }, [])
 
   const visible = useMemo(
@@ -79,6 +113,8 @@ function Labeller({ email }: { email: string }) {
     const idx = visible.findIndex((i) => i.id === id)
     setSelectedId(visible[idx + 1]?.id ?? null)
   }, [visible])
+
+  if (denied) return <NotAdmin email={email} />
 
   return (
     <main className="admin">

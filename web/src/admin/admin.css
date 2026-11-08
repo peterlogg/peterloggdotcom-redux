@@ -39,3 +39,9 @@
   .admin-body, .split { grid-template-columns: 1fr; }
   .queue { max-height: 30vh; border-right: none; border-bottom: 1px solid var(--border); }
 }
+
+.admin-gate .email-form { display: flex; gap: 8px; flex-wrap: wrap; }
+.admin-gate input { font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface-1); color: var(--text-primary); min-width: 240px; }
+.admin-gate button { font: inherit; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--text-primary); cursor: pointer; }

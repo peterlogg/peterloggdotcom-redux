@@ -5,7 +5,13 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null
         && request.auth.token.email_verified == true
-        && request.auth.token.email in ['loggpeter@gmail.com', 'loggpeter@googlemail.com'];
+        && request.auth.token.email.lower() in [
+          // The admin list. Edit here, then `make deploy`.
+          'loggpeter@gmail.com', 'loggpeter@googlemail.com',  // Peter
+          'mark31_r@hotmail.com',                             // Russell
+          'dominic.james.byrne@live.co.uk',                   // Dom
+          'simonletouze@hotmail.co.uk',                       // Simon
+        ];
     }
     match /review_queue/{id} {
       allow read: if isAdmin();
