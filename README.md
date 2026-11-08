@@ -26,4 +26,4 @@ make labels report queue deploy  # pull /admin labels → rebuild stats → refr
 - Firebase project `peterloggdotcom-redux`; private bucket `gs://peterloggdotcom-redux` and the
   `peterlogg.com` Cloud DNS zone live in GCP project `peterlogg-dotcom`.
 - gcloud/Firebase commands use the personal account explicitly (this machine's default credentials are a work account).
-- Raw chat, media and chat-derived files never go in git; only picks, labels and the public report do.
+- Raw chat, media and chat-derived files never go in git, and no chat text goes to Firestore or the site. The only online copy is the private bucket backup; git has picks, labels and the public report.

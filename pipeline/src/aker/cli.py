@@ -86,8 +86,7 @@ def cmd_queue(a: argparse.Namespace) -> None:
     weeks = settle.settle(final, picks.placers(claude, refereed), df)
     no_fixture = [l.pick for w in weeks for l in w.legs if l.fixture is None]
     items = picks.with_no_fixture_flags(picks.review_items(final, days, labels, slip_reads), no_fixture)
-    windows = {w.matchday: w for w in _windows(a.messages)}
-    pushed, removed = admin.push_queue(items, final, windows, picks.placers(claude, refereed), df)
+    pushed, removed = admin.push_queue(items, final, picks.placers(claude, refereed), df)
     print(f"review queue: {pushed} items pushed, {removed} stale removed")
 
 
@@ -153,8 +152,8 @@ def main() -> None:
     p.add_argument("--dry-run", action="store_true", help="only count candidate images")
     p.set_defaults(func=cmd_slips)
 
-    p = sub.add_parser("queue", help="push the review queue to Firestore for /admin")
-    for arg in ("--messages", "--claude", "--refereed", "--slips", "--labels", "--results"):
+    p = sub.add_parser("queue", help="push the review queue to Firestore for /admin (no chat text)")
+    for arg in ("--claude", "--refereed", "--slips", "--labels", "--results"):
         p.add_argument(arg, type=Path, required=True)
     p.set_defaults(func=cmd_queue)
 

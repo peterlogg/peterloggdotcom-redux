@@ -156,18 +156,11 @@ function ItemPanel({ item, label, onSaved }: { item: QueueItem; label?: LabelDoc
   const [betType, setBetType] = useState(initialBet[0])
   const [line, setLine] = useState(initialBet[1] ?? '2.5')
   const [saving, setSaving] = useState(false)
-  const [chatFilter, setChatFilter] = useState('')
 
   const teams = useMemo(
     () => [...new Set(item.fixtures.flatMap((f) => [f.home, f.away]))].sort(),
     [item.fixtures],
   )
-  const chatLines = useMemo(() => {
-    const lines = item.chat.split('\n')
-    const q = chatFilter.trim().toLowerCase()
-    return q ? lines.filter((l) => l.toLowerCase().includes(q)) : lines
-  }, [item.chat, chatFilter])
-
   async function save(teamValue: string | null) {
     setSaving(true)
     const bets = teamValue ? [NEEDS_LINE.has(betType) ? `${betType}:${line}` : betType] : []
@@ -191,8 +184,11 @@ function ItemPanel({ item, label, onSaved }: { item: QueueItem; label?: LabelDoc
       </div>
 
       <div className="week-picks">
+        <span className="muted">This week:</span>
         {Object.entries(item.week_picks).map(([p, pick]) => (
-          <span key={p} className="chip">{p}: {pick?.team}</span>
+          <span key={p} className="chip" title={pick?.selection_text ? `"${pick.selection_text}"` : undefined}>
+            {p}: {pick?.team}
+          </span>
         ))}
       </div>
 
@@ -225,14 +221,9 @@ function ItemPanel({ item, label, onSaved }: { item: QueueItem; label?: LabelDoc
         <button disabled={saving} onClick={() => save(null)}>No pick this week</button>
       </div>
 
-      <div className="split">
-        <div className="chat">
-          <input value={chatFilter} onChange={(e) => setChatFilter(e.target.value)} placeholder="Filter chat…" />
-          <pre>{chatLines.map((l, i) => (
-            <div key={i} className={l.includes(` ${item.person}: `) ? 'mine' : ''}>{l}</div>
-          ))}</pre>
-        </div>
-        <div className="fixtures">
+      <p className="muted">Need context? Scroll back to this weekend in the WhatsApp group; the chat isn't stored here.</p>
+
+      <div className="fixtures">
           <h3>Fixtures that day</h3>
           <ul>
             {item.fixtures.map((f) => (
@@ -245,7 +236,6 @@ function ItemPanel({ item, label, onSaved }: { item: QueueItem; label?: LabelDoc
             ))}
             {item.fixtures.length === 0 && <li className="muted">No league games found (cup weekend?)</li>}
           </ul>
-        </div>
       </div>
     </section>
   )

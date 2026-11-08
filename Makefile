@@ -98,8 +98,8 @@ $(REPORT): $(CLAUDE) $(REFEREED) $(SLIPS) $(LABELS) $(RESULTS_CSV) $(wildcard pi
 	mkdir -p $(@D)
 	$(AKER) report --claude $(CLAUDE) --refereed $(REFEREED) --slips $(SLIPS) --labels $(LABELS) --results $(RESULTS_CSV) --out $@
 
-queue: $(MESSAGES) $(SLIPS) $(LABELS) $(RESULTS_CSV)
-	$(AKER) queue --messages $(MESSAGES) --claude $(CLAUDE) --refereed $(REFEREED) --slips $(SLIPS) --labels $(LABELS) --results $(RESULTS_CSV)
+queue: $(SLIPS) $(LABELS) $(RESULTS_CSV)
+	$(AKER) queue --claude $(CLAUDE) --refereed $(REFEREED) --slips $(SLIPS) --labels $(LABELS) --results $(RESULTS_CSV)
 
 labels:
 	$(AKER) labels --out $(LABELS)

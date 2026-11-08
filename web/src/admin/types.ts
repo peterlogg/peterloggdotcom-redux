@@ -27,7 +27,6 @@ export interface QueueItem {
   placer: string
   week_picks: Partial<Record<Person, QueuePick>>
   fixtures: FixtureRow[]
-  chat: string
 }
 
 export interface LabelDoc {

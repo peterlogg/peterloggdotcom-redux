@@ -1,4 +1,8 @@
-"""Sync with the /admin page: push the review queue to Firestore, pull human labels back."""
+"""Sync with the /admin page: push the review queue to Firestore, pull human labels back.
+
+The queue deliberately holds no chat messages - only picks, slip hints and fixtures - so no
+conversation text is stored online beyond the private bucket backup.
+"""
 import subprocess
 from collections.abc import Iterable, Mapping, Sequence
 from datetime import date
@@ -8,12 +12,11 @@ from google.cloud import firestore
 from google.oauth2.credentials import Credentials
 
 from aker.config import FIRESTORE_DATABASE, GCLOUD_ACCOUNT, GCP_PROJECT
-from aker.models import Bet, ChatWindow, FinalPick, Label, ReviewItem
+from aker.models import Bet, FinalPick, Label, ReviewItem
 from aker.results import LEAGUES
 
 QUEUE = "review_queue"
 LABELS = "labels"
-MAX_CHAT_CHARS = 20_000
 
 
 def client() -> firestore.Client:
@@ -46,7 +49,6 @@ def _fixtures(results: pd.DataFrame, day: date) -> list[dict]:
 def push_queue(
     items: Sequence[ReviewItem],
     picks: Sequence[FinalPick],
-    windows: Mapping[date, ChatWindow],
     placers: Mapping[date, str],
     results: pd.DataFrame,
 ) -> tuple[int, int]:
@@ -58,7 +60,6 @@ def push_queue(
 
     batch, n = db.batch(), 0
     for doc_id, item in wanted.items():
-        window = windows.get(item.matchday)
         batch.set(db.collection(QUEUE).document(doc_id), {
             "matchday": item.matchday.isoformat(),
             "person": item.person,
@@ -68,7 +69,6 @@ def push_queue(
             "placer": placers.get(item.matchday, "unknown"),
             "week_picks": {p.person: _pick(p) for p in by_day.get(item.matchday, [])},
             "fixtures": _fixtures(results, item.matchday),
-            "chat": window.transcript[-MAX_CHAT_CHARS:] if window else "",
         })
         n += 1
         if n % 400 == 0:  # Firestore batches cap at 500 writes
