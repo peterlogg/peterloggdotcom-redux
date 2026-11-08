@@ -9,3 +9,8 @@ __pycache__/
 .firebase/
 .DS_Store
 .env
+
+# Regenerable / quotes chat messages
+data/results/
+data/results.csv
+data/picks_review.csv
