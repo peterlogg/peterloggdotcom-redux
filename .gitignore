@@ -1,0 +1,11 @@
+# Raw WhatsApp export + intermediate message dumps: private, never commit
+data/raw/
+data/interim/
+
+node_modules/
+web/dist/
+.venv/
+__pycache__/
+.firebase/
+.DS_Store
+.env
