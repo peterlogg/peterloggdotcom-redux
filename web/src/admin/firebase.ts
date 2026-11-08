@@ -3,16 +3,16 @@ import { GoogleAuthProvider, getAuth, signInWithPopup, signOut } from 'firebase/
 import { collection, doc, getDocs, getFirestore, serverTimestamp, setDoc } from 'firebase/firestore'
 import type { LabelDoc, QueueItem } from './types'
 
-// Public web config (safe to ship); set in web/.env as VITE_FIREBASE_*.
+// Firebase web config is public by design: access is enforced by Auth + firestore.rules.
 const app = initializeApp({
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: 'AIzaSyAimBNl2I_gTobpH0vqoNJQH9HquQBJfT0',
+  authDomain: 'peterloggdotcom-redux.firebaseapp.com',
+  projectId: 'peterloggdotcom-redux',
+  appId: '1:576884406041:web:4b19826b24d8eaae8c3788',
 })
 
 export const auth = getAuth(app)
-const db = getFirestore(app, 'aker')
+const db = getFirestore(app)
 
 export const ADMIN_EMAILS = ['loggpeter@gmail.com', 'loggpeter@googlemail.com']
 

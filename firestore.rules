@@ -1,5 +1,5 @@
 rules_version = '2';
-// Database "aker": the review queue (contains chat excerpts) and labels. Admin only.
+// The review queue (contains chat excerpts) and labels. Admin only.
 service cloud.firestore {
   match /databases/{database}/documents {
     function isAdmin() {

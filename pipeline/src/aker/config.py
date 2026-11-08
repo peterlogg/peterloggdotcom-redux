@@ -16,6 +16,6 @@ JEV_MODEL = "jev-latest"
 
 # Admin (Firebase/Firestore) - personal GCP project, accessed with the personal gcloud login explicitly
 # (application-default credentials on this machine belong to a work account).
-GCP_PROJECT = "peterlogg-dotcom"
-FIRESTORE_DATABASE = "aker"
+GCP_PROJECT = "peterloggdotcom-redux"
+FIRESTORE_DATABASE = "(default)"
 GCLOUD_ACCOUNT = "loggpeter@googlemail.com"

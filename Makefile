@@ -108,4 +108,4 @@ site: $(REPORT)
 	cd web && npm run build
 
 deploy: site
-	npx -y firebase-tools@14.20.0 deploy --only hosting,firestore:rules --project peterlogg-dotcom
+	npx -y firebase-tools@14.20.0 deploy --only hosting,firestore:rules --project peterloggdotcom-redux
