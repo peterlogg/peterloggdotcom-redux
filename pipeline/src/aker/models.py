@@ -9,6 +9,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
+from aker.config import PEOPLE
+
 NO_TEAM = "no_team"
 Person = Literal["Dom", "Peter", "Russell", "Simon"]
 
@@ -219,3 +221,119 @@ class ReviewRow:
     final_team: str
     final_market: Market
     exclude: bool = field(default=False)
+
+
+# --- Final picks -------------------------------------------------------------------------------
+
+
+class PickSource(StrEnum):
+    EXTRACT = "extract"  # both extractors agreed (or Claude alone, for weeks not refereed)
+    REFEREE = "referee"  # the careful second pass
+    LABEL = "label"  # a human label from /admin
+
+
+@dataclass(frozen=True)
+class Bet:
+    """One condition a leg needs, e.g. win, or over_goals 2.5."""
+
+    type: ConditionType
+    line: float | None = None
+
+    def __str__(self) -> str:
+        return self.type.value if self.line is None else f"{self.type.value}:{self.line:g}"
+
+    @classmethod
+    def parse(cls, text: str) -> "Bet":
+        kind, _, line = text.partition(":")
+        return cls(ConditionType(kind), float(line) if line else None)
+
+
+@dataclass(frozen=True)
+class FinalPick:
+    matchday: date
+    person: str
+    team: str
+    bets: tuple[Bet, ...]
+    selection_text: str
+    source: PickSource
+    confident: bool
+
+
+@dataclass(frozen=True)
+class Label:
+    """A human decision for one (matchday, person). No team means 'no pick that week'."""
+
+    matchday: date
+    person: str
+    team: str | None
+    bets: tuple[Bet, ...]
+
+
+@dataclass(frozen=True)
+class ReviewItem:
+    """Something for a human to look at in /admin: a doubtful pick, or a missing one."""
+
+    matchday: date
+    person: str
+    reason: Literal["missing", "unsure", "unsettleable", "no_fixture"]
+    current: FinalPick | None
+
+
+# --- Settlement --------------------------------------------------------------------------------
+
+
+class Outcome(StrEnum):
+    WON = "won"
+    LOST = "lost"
+    UNSETTLED = "unsettled"  # no fixture found, or a bet we can't settle from the score
+
+
+@dataclass(frozen=True)
+class Fixture:
+    date: date
+    league: str
+    home: str
+    away: str
+    home_goals: int
+    away_goals: int
+    kickoff: str | None
+    odds_home: float | None
+    odds_draw: float | None
+    odds_away: float | None
+    odds_over25: float | None
+    odds_under25: float | None
+
+
+@dataclass(frozen=True)
+class SettledLeg:
+    pick: FinalPick
+    fixture: Fixture | None
+    outcome: Outcome
+    probability: float | None  # bookies' implied (or modelled) chance this leg wins
+    odds: float | None  # decimal odds used for the leg
+    odds_estimated: bool  # True when priced from the goals model rather than a quoted price
+
+
+@dataclass(frozen=True)
+class SettledWeek:
+    matchday: date
+    placer: str
+    legs: tuple[SettledLeg, ...]
+
+    @property
+    def complete(self) -> bool:
+        """All four legs known and settled, so the week's result and return are trustworthy."""
+        return len(self.legs) == len(PEOPLE) and all(l.outcome is not Outcome.UNSETTLED for l in self.legs)
+
+    @property
+    def won(self) -> bool:
+        return bool(self.legs) and all(l.outcome is Outcome.WON for l in self.legs)
+
+    @property
+    def odds(self) -> float | None:
+        if not self.legs or any(l.odds is None for l in self.legs):
+            return None
+        total = 1.0
+        for leg in self.legs:
+            total *= leg.odds
+        return total

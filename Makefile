@@ -1,6 +1,6 @@
 # aker pipeline. Make owns file locations and the dependency graph; `aker` commands are pure-ish steps.
 #
-#   make              parse chat, fetch results, compare extractors (no paid API calls)
+#   make              parse chat, fetch results, compare extractors, build the report (no paid API calls)
 #   make extract      run the Claude + Jev extractors on any new matchdays (paid)
 #   make referee      careful Claude pass on disputed / non-win weeks (paid)
 #   make pull / push  sync private data with the GCS bucket
@@ -22,6 +22,8 @@ JEV      := $(INTERIM)/picks_jev.jsonl
 REFEREED := $(INTERIM)/picks_refereed.jsonl
 RESULTS_CSV := $(DATA)/results.csv
 REVIEW   := $(DATA)/picks_review.csv
+LABELS   := $(DATA)/labels.csv
+REPORT   := web/public/data/report.json
 
 AKER     := uv run --project pipeline aker
 
@@ -30,10 +32,10 @@ CURRENT  := 2627
 LEAGUES  := E0 E1 E2 E3 EC SC0 SC1 SC2 SC3
 SEASON_FILES := $(foreach s,$(SEASONS),$(foreach l,$(LEAGUES),$(RESULTS)/$(s)_$(l).csv))
 
-.PHONY: all extract referee review push pull refresh
+.PHONY: all extract referee review report push pull refresh
 .DELETE_ON_ERROR:
 
-all: review
+all: review report
 
 $(INTERIM) $(RESULTS):
 	mkdir -p $@
@@ -73,3 +75,11 @@ pull: | $(INTERIM)
 	mkdir -p $(RAW)
 	gcloud storage rsync --recursive $(BUCKET)/raw $(RAW)
 	gcloud storage rsync --recursive $(BUCKET)/interim $(INTERIM)
+
+$(LABELS):
+	echo "matchday,person,team,bets" > $@
+
+report: $(REPORT)
+$(REPORT): $(CLAUDE) $(REFEREED) $(LABELS) $(RESULTS_CSV) $(wildcard pipeline/src/aker/*.py)
+	mkdir -p $(@D)
+	$(AKER) report --claude $(CLAUDE) --refereed $(REFEREED) --labels $(LABELS) --results $(RESULTS_CSV) --out $@

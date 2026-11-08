@@ -4,7 +4,7 @@ import logging
 from collections import Counter
 from pathlib import Path
 
-from aker import chat, extract_claude, extract_jev, referee, results, review
+from aker import chat, extract_claude, extract_jev, picks, referee, report, results, review, settle
 from aker.models import ExtractedFile, JevWeek, RefereedWeek, Week
 
 
@@ -58,6 +58,18 @@ def cmd_referee(a: argparse.Namespace) -> None:
           f"{usage.output_tokens:,} out ≈ ${usage.cost_usd:.2f}")
 
 
+def cmd_report(a: argparse.Namespace) -> None:
+    claude = ExtractedFile(a.claude, Week).by_matchday()
+    refereed = ExtractedFile(a.refereed, RefereedWeek).by_matchday()
+    final = picks.assemble(claude, refereed, picks.read_labels(a.labels))
+    weeks = settle.settle(final, picks.placers(claude, refereed), results.load_results(a.results))
+    built = report.build(weeks)
+    report.write(built, a.out)
+    s = built.summary
+    print(f"{s.weeks} weeks ({s.weeks_won} won), staked £{s.staked:,.0f}, returned £{s.returned:,.2f}, profit £{s.profit:,.2f}")
+    print(built.scottish.verdict)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="aker")
     sub = parser.add_subparsers(required=True)
@@ -90,6 +102,11 @@ def main() -> None:
         p.add_argument(arg, type=Path, required=True)
     p.add_argument("--limit", type=int)
     p.set_defaults(func=cmd_referee)
+
+    p = sub.add_parser("report", help="final picks → settle → public report JSON")
+    for arg in ("--claude", "--refereed", "--labels", "--results", "--out"):
+        p.add_argument(arg, type=Path, required=True)
+    p.set_defaults(func=cmd_report)
 
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(message)s")
