@@ -73,6 +73,33 @@ def cmd_slips(a: argparse.Namespace) -> None:
     print(f"read {n} images")
 
 
+def cmd_queue(a: argparse.Namespace) -> None:
+    from aker import admin  # needs gcloud; keep other commands free of it
+
+    claude = ExtractedFile(a.claude, Week).by_matchday()
+    refereed = ExtractedFile(a.refereed, RefereedWeek).by_matchday()
+    slip_reads = slips.slips_by_matchday(ExtractedFile(a.slips, ImageSlip).read())
+    labels = picks.read_labels(a.labels)
+    final = picks.assemble(claude, refereed, labels, slip_reads)
+    days = picks.aker_matchdays(claude, refereed)
+    df = results.load_results(a.results)
+    weeks = settle.settle(final, picks.placers(claude, refereed), df)
+    no_fixture = [l.pick for w in weeks for l in w.legs if l.fixture is None]
+    items = picks.with_no_fixture_flags(picks.review_items(final, days, labels, slip_reads), no_fixture)
+    windows = {w.matchday: w for w in _windows(a.messages)}
+    pushed, removed = admin.push_queue(items, final, windows, picks.placers(claude, refereed), df)
+    print(f"review queue: {pushed} items pushed, {removed} stale removed")
+
+
+def cmd_labels(a: argparse.Namespace) -> None:
+    from aker import admin
+
+    pulled = admin.pull_labels()
+    merged = admin.merge_labels(picks.read_labels(a.out), pulled)
+    picks.write_labels(merged, a.out)
+    print(f"{len(pulled)} labels pulled, {len(merged)} in {a.out}")
+
+
 def cmd_report(a: argparse.Namespace) -> None:
     claude = ExtractedFile(a.claude, Week).by_matchday()
     refereed = ExtractedFile(a.refereed, RefereedWeek).by_matchday()
@@ -125,6 +152,15 @@ def main() -> None:
     p.add_argument("--limit", type=int)
     p.add_argument("--dry-run", action="store_true", help="only count candidate images")
     p.set_defaults(func=cmd_slips)
+
+    p = sub.add_parser("queue", help="push the review queue to Firestore for /admin")
+    for arg in ("--messages", "--claude", "--refereed", "--slips", "--labels", "--results"):
+        p.add_argument(arg, type=Path, required=True)
+    p.set_defaults(func=cmd_queue)
+
+    p = sub.add_parser("labels", help="pull /admin labels from Firestore into the labels CSV")
+    p.add_argument("--out", type=Path, required=True)
+    p.set_defaults(func=cmd_labels)
 
     p = sub.add_parser("report", help="final picks → settle → public report JSON")
     for arg in ("--claude", "--refereed", "--slips", "--labels", "--results", "--out"):

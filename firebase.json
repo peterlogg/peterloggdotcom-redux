@@ -2,6 +2,8 @@
   "hosting": {
     "public": "web/dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "rewrites": [{ "source": "**", "destination": "/index.html" }]
-  }
+    "rewrites": [{ "source": "**", "destination": "/index.html" }],
+    "headers": [{ "source": "/data/**", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }]
+  },
+  "firestore": [{ "database": "aker", "rules": "firestore.rules" }]
 }

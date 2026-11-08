@@ -5,6 +5,8 @@
 #   make referee      careful Claude pass on disputed / non-win weeks (paid)
 #   make slips        read bet-slip images on matchdays with missing picks (paid; slips-count to preview)
 #   make pull / push  sync private data with the GCS bucket
+#   make queue        push the review queue to /admin;  make labels  pull your labels back
+#   make deploy       build the site and deploy to Firebase Hosting
 #   make refresh      re-download the current season's results
 
 -include .env          # ANTHROPIC_API_KEY, TYPESAFE_API_KEY (gitignored)
@@ -35,7 +37,7 @@ CURRENT  := 2627
 LEAGUES  := E0 E1 E2 E3 EC SC0 SC1 SC2 SC3
 SEASON_FILES := $(foreach s,$(SEASONS),$(foreach l,$(LEAGUES),$(RESULTS)/$(s)_$(l).csv))
 
-.PHONY: all extract referee slips slips-count review report push pull refresh
+.PHONY: all extract referee slips slips-count review report queue labels site deploy push pull refresh
 .DELETE_ON_ERROR:
 
 all: review report
@@ -95,3 +97,15 @@ report: $(REPORT)
 $(REPORT): $(CLAUDE) $(REFEREED) $(SLIPS) $(LABELS) $(RESULTS_CSV) $(wildcard pipeline/src/aker/*.py)
 	mkdir -p $(@D)
 	$(AKER) report --claude $(CLAUDE) --refereed $(REFEREED) --slips $(SLIPS) --labels $(LABELS) --results $(RESULTS_CSV) --out $@
+
+queue: $(MESSAGES) $(SLIPS) $(LABELS) $(RESULTS_CSV)
+	$(AKER) queue --messages $(MESSAGES) --claude $(CLAUDE) --refereed $(REFEREED) --slips $(SLIPS) --labels $(LABELS) --results $(RESULTS_CSV)
+
+labels:
+	$(AKER) labels --out $(LABELS)
+
+site: $(REPORT)
+	cd web && npm run build
+
+deploy: site
+	npx -y firebase-tools@14.20.0 deploy --only hosting,firestore:rules --project peterlogg-dotcom

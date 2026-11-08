@@ -13,3 +13,9 @@ OFF_SEASON_MONTHS = frozenset({6, 7})
 
 CLAUDE_MODEL = "claude-opus-5-5"
 JEV_MODEL = "jev-latest"
+
+# Admin (Firebase/Firestore) - personal GCP project, accessed with the personal gcloud login explicitly
+# (application-default credentials on this machine belong to a work account).
+GCP_PROJECT = "peterlogg-dotcom"
+FIRESTORE_DATABASE = "aker"
+GCLOUD_ACCOUNT = "loggpeter@googlemail.com"
