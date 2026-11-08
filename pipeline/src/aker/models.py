@@ -230,6 +230,7 @@ class PickSource(StrEnum):
     EXTRACT = "extract"  # both extractors agreed (or Claude alone, for weeks not refereed)
     REFEREE = "referee"  # the careful second pass
     LABEL = "label"  # a human label from /admin
+    SLIP = "slip"  # the one unaccounted-for leg on that week's bet slip
 
 
 @dataclass(frozen=True)
@@ -277,6 +278,7 @@ class ReviewItem:
     person: str
     reason: Literal["missing", "unsure", "unsettleable", "no_fixture"]
     current: FinalPick | None
+    slip_teams: tuple[str, ...] = ()  # unaccounted-for legs on that week's bet slip, as hints
 
 
 # --- Settlement --------------------------------------------------------------------------------
@@ -337,3 +339,30 @@ class SettledWeek:
         for leg in self.legs:
             total *= leg.odds
         return total
+
+
+# --- Bet slips (images) ------------------------------------------------------------------------
+
+
+class SlipLeg(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    team: str = Field(description="Canonical club name the selection is on (for match bets, the first club named)")
+    conditions: list[Condition]
+    odds: float | None = Field(description="Decimal odds shown for this leg, if visible (convert fractional: 5/4 → 2.25)")
+
+
+class SlipRead(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    is_bet_slip: bool = Field(description="True if the image is a bookmaker bet slip / bet confirmation")
+    legs: list[SlipLeg]
+    total_odds: float | None = Field(description="Decimal odds for the whole accumulator, if shown")
+    stake: float | None = Field(description="Total stake in £, if shown")
+    notes: str
+
+
+@dataclass(frozen=True)
+class ImageSlip:
+    image: str  # file name within the media folder
+    slip: SlipRead

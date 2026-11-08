@@ -4,8 +4,8 @@ import logging
 from collections import Counter
 from pathlib import Path
 
-from aker import chat, extract_claude, extract_jev, picks, referee, report, results, review, settle
-from aker.models import ExtractedFile, JevWeek, RefereedWeek, Week
+from aker import chat, extract_claude, extract_jev, picks, referee, report, results, review, settle, slips
+from aker.models import ExtractedFile, ImageSlip, JevWeek, RefereedWeek, Week
 
 
 def _windows(messages: Path) -> list:
@@ -58,10 +58,26 @@ def cmd_referee(a: argparse.Namespace) -> None:
           f"{usage.output_tokens:,} out ≈ ${usage.cost_usd:.2f}")
 
 
+def _missing_matchdays(claude_path: Path, refereed_path: Path, labels_path: Path) -> list:
+    claude = ExtractedFile(claude_path, Week).by_matchday()
+    refereed = ExtractedFile(refereed_path, RefereedWeek).by_matchday()
+    labels = picks.read_labels(labels_path)
+    days = picks.aker_matchdays(claude, refereed)
+    items = picks.review_items(picks.assemble(claude, refereed, labels), days, labels)
+    return sorted({i.matchday for i in items if i.reason == "missing"})
+
+
+def cmd_slips(a: argparse.Namespace) -> None:
+    days = _missing_matchdays(a.claude, a.refereed, a.labels)
+    n = slips.read_slips(a.media, days, _clubs(a.results), ExtractedFile(a.out, ImageSlip), a.limit, a.dry_run)
+    print(f"read {n} images")
+
+
 def cmd_report(a: argparse.Namespace) -> None:
     claude = ExtractedFile(a.claude, Week).by_matchday()
     refereed = ExtractedFile(a.refereed, RefereedWeek).by_matchday()
-    final = picks.assemble(claude, refereed, picks.read_labels(a.labels))
+    slip_reads = slips.slips_by_matchday(ExtractedFile(a.slips, ImageSlip).read())
+    final = picks.assemble(claude, refereed, picks.read_labels(a.labels), slip_reads)
     weeks = settle.settle(final, picks.placers(claude, refereed), results.load_results(a.results))
     built = report.build(weeks)
     report.write(built, a.out)
@@ -103,8 +119,15 @@ def main() -> None:
     p.add_argument("--limit", type=int)
     p.set_defaults(func=cmd_referee)
 
+    p = sub.add_parser("slips", help="read bet-slip images on matchdays with missing picks")
+    for arg in ("--media", "--claude", "--refereed", "--labels", "--results", "--out"):
+        p.add_argument(arg, type=Path, required=True)
+    p.add_argument("--limit", type=int)
+    p.add_argument("--dry-run", action="store_true", help="only count candidate images")
+    p.set_defaults(func=cmd_slips)
+
     p = sub.add_parser("report", help="final picks → settle → public report JSON")
-    for arg in ("--claude", "--refereed", "--labels", "--results", "--out"):
+    for arg in ("--claude", "--refereed", "--slips", "--labels", "--results", "--out"):
         p.add_argument(arg, type=Path, required=True)
     p.set_defaults(func=cmd_report)
 

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from aker.config import PEOPLE
 from aker.models import (
-    NO_TEAM, Bet, ConditionType, FinalPick, Label, Market, PickSource, RefereedWeek, ReviewItem, Week,
+    NO_TEAM, Bet, ConditionType, FinalPick, Label, Market, PickSource, RefereedWeek, ReviewItem, SlipRead, Week,
 )
 
 # Claude's first-pass market → bets (only used for weeks the referee didn't look at, which are all plain wins).
@@ -58,12 +58,38 @@ def aker_matchdays(claude: Mapping[date, Week], refereed: Mapping[date, Refereed
     return sorted(days)
 
 
+def unaccounted_slip_legs(day: date, week_picks: Sequence[FinalPick], slips: Sequence[SlipRead]) -> list:
+    """Legs on that week's (largest) bet slip that don't match any pick already known."""
+    if not slips:
+        return []
+    slip = max(slips, key=lambda s: len(s.legs))
+    known = {p.team for p in week_picks}
+    return [leg for leg in slip.legs if leg.team != NO_TEAM and leg.team not in known]
+
+
+def _fill_from_slip(day: date, week_picks: list[FinalPick], slips: Sequence[SlipRead]) -> list[FinalPick]:
+    missing = [p for p in PEOPLE if p not in {wp.person for wp in week_picks}]
+    legs = unaccounted_slip_legs(day, week_picks, slips)
+    if len(missing) == 1 and len(legs) == 1:  # unambiguous: the only gap gets the only spare leg
+        leg = legs[0]
+        week_picks.append(FinalPick(
+            matchday=day, person=missing[0], team=leg.team,
+            bets=tuple(Bet(c.type, c.line) for c in leg.conditions) or (Bet(ConditionType.WIN),),
+            selection_text="(from bet slip)", source=PickSource.SLIP, confident=True,
+        ))
+    return week_picks
+
+
 def assemble(
-    claude: Mapping[date, Week], refereed: Mapping[date, RefereedWeek], labels: Iterable[Label]
+    claude: Mapping[date, Week],
+    refereed: Mapping[date, RefereedWeek],
+    labels: Iterable[Label],
+    slips: Mapping[date, Sequence[SlipRead]] | None = None,
 ) -> list[FinalPick]:
     picks: dict[tuple[date, str], FinalPick] = {}
     for day in aker_matchdays(claude, refereed):
         week_picks = _from_referee(day, refereed[day]) if day in refereed else _from_extract(day, claude[day])
+        week_picks = _fill_from_slip(day, week_picks, (slips or {}).get(day, []))
         picks |= {(p.matchday, p.person): p for p in week_picks}
     for label in labels:  # human labels always win
         key = (label.matchday, label.person)
@@ -79,18 +105,23 @@ def assemble(
 
 
 def review_items(
-    picks: Sequence[FinalPick], matchdays: Sequence[date], labels: Iterable[Label]
+    picks: Sequence[FinalPick],
+    matchdays: Sequence[date],
+    labels: Iterable[Label],
+    slips: Mapping[date, Sequence[SlipRead]] | None = None,
 ) -> list[ReviewItem]:
     labelled = {(l.matchday, l.person) for l in labels}
     by_key = {(p.matchday, p.person): p for p in picks}
     items = []
     for day in matchdays:
+        week_picks = [p for p in picks if p.matchday == day]
+        hints = tuple(leg.team for leg in unaccounted_slip_legs(day, week_picks, (slips or {}).get(day, [])))
         for person in PEOPLE:
             if (day, person) in labelled:
                 continue
             pick = by_key.get((day, person))
             if pick is None:
-                items.append(ReviewItem(day, person, "missing", None))
+                items.append(ReviewItem(day, person, "missing", None, hints))
             elif any(b.type is ConditionType.OTHER for b in pick.bets):
                 items.append(ReviewItem(day, person, "unsettleable", pick))
             elif not pick.confident:
@@ -127,6 +158,3 @@ def with_no_fixture_flags(items: list[ReviewItem], unsettled: Iterable[FinalPick
     extra = [ReviewItem(p.matchday, p.person, "no_fixture", p) for p in unsettled if (p.matchday, p.person) not in seen]
     return sorted([*items, *extra], key=lambda i: (i.matchday, i.person))
 
-
-__all__ = ["assemble", "aker_matchdays", "placers", "review_items", "read_labels", "write_labels",
-           "with_no_fixture_flags", "replace"]

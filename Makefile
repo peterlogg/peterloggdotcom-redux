@@ -3,6 +3,7 @@
 #   make              parse chat, fetch results, compare extractors, build the report (no paid API calls)
 #   make extract      run the Claude + Jev extractors on any new matchdays (paid)
 #   make referee      careful Claude pass on disputed / non-win weeks (paid)
+#   make slips        read bet-slip images on matchdays with missing picks (paid; slips-count to preview)
 #   make pull / push  sync private data with the GCS bucket
 #   make refresh      re-download the current season's results
 
@@ -20,6 +21,8 @@ MESSAGES := $(INTERIM)/messages.csv
 CLAUDE   := $(INTERIM)/picks_claude.jsonl
 JEV      := $(INTERIM)/picks_jev.jsonl
 REFEREED := $(INTERIM)/picks_refereed.jsonl
+SLIPS    := $(INTERIM)/slips.jsonl
+MEDIA    := $(RAW)/media
 RESULTS_CSV := $(DATA)/results.csv
 REVIEW   := $(DATA)/picks_review.csv
 LABELS   := $(DATA)/labels.csv
@@ -32,7 +35,7 @@ CURRENT  := 2627
 LEAGUES  := E0 E1 E2 E3 EC SC0 SC1 SC2 SC3
 SEASON_FILES := $(foreach s,$(SEASONS),$(foreach l,$(LEAGUES),$(RESULTS)/$(s)_$(l).csv))
 
-.PHONY: all extract referee review report push pull refresh
+.PHONY: all extract referee slips slips-count review report push pull refresh
 .DELETE_ON_ERROR:
 
 all: review report
@@ -79,7 +82,16 @@ pull: | $(INTERIM)
 $(LABELS):
 	echo "matchday,person,team,bets" > $@
 
+SLIP_ARGS = --media $(MEDIA) --claude $(CLAUDE) --refereed $(REFEREED) --labels $(LABELS) --results $(RESULTS_CSV) --out $(SLIPS)
+slips-count: $(LABELS) $(RESULTS_CSV)
+	$(AKER) slips $(SLIP_ARGS) --dry-run
+slips: $(LABELS) $(RESULTS_CSV)
+	$(AKER) slips $(SLIP_ARGS)
+
+$(SLIPS): | $(INTERIM)
+	touch $@
+
 report: $(REPORT)
-$(REPORT): $(CLAUDE) $(REFEREED) $(LABELS) $(RESULTS_CSV) $(wildcard pipeline/src/aker/*.py)
+$(REPORT): $(CLAUDE) $(REFEREED) $(SLIPS) $(LABELS) $(RESULTS_CSV) $(wildcard pipeline/src/aker/*.py)
 	mkdir -p $(@D)
-	$(AKER) report --claude $(CLAUDE) --refereed $(REFEREED) --labels $(LABELS) --results $(RESULTS_CSV) --out $@
+	$(AKER) report --claude $(CLAUDE) --refereed $(REFEREED) --slips $(SLIPS) --labels $(LABELS) --results $(RESULTS_CSV) --out $@

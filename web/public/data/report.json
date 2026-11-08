@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-08 15:49:53",
+ "generated_at": "2026-11-08 15:55:17",
  "people": [
   "Dom",
   "Peter",
@@ -8,136 +8,136 @@
  ],
  "summary": {
   "weeks": 185,
-  "weeks_settled": 92,
-  "weeks_won": 18,
-  "staked": 1840.0,
-  "returned": 2221.18,
-  "profit": 381.18,
+  "weeks_settled": 105,
+  "weeks_won": 20,
+  "staked": 2100.0,
+  "returned": 2609.73,
+  "profit": 509.73,
   "biggest_win": {
-   "matchday": "2023-09-23",
-   "placer": "Russell",
+   "matchday": "2018-10-27",
+   "placer": "Dom",
    "legs": [
     {
      "person": "Dom",
-     "team": "Leicester",
-     "opponent": "Bristol City",
+     "team": "Sheffield United",
+     "opponent": "Wigan",
      "home": true,
      "league": "E1",
      "bets": "win",
-     "selection_text": "Leicester",
+     "selection_text": "(from bet slip)",
      "outcome": "won",
-     "score": "1-0",
-     "odds": 1.73,
+     "score": "4-2",
+     "odds": 1.7,
      "odds_estimated": false,
-     "probability": 0.5504
+     "probability": 0.5718
     },
     {
      "person": "Peter",
-     "team": "Portsmouth",
-     "opponent": "Lincoln",
-     "home": true,
-     "league": "E2",
-     "bets": "win",
-     "selection_text": "Pompey",
-     "outcome": "won",
-     "score": "2-1",
-     "odds": 1.7,
-     "odds_estimated": false,
-     "probability": 0.5595
-    },
-    {
-     "person": "Russell",
-     "team": "Leeds",
-     "opponent": "Watford",
+     "team": "Millwall",
+     "opponent": "Ipswich",
      "home": true,
      "league": "E1",
      "bets": "win",
-     "selection_text": "Leeds",
+     "selection_text": "Millwall",
      "outcome": "won",
      "score": "3-0",
-     "odds": 1.73,
+     "odds": 1.61,
      "odds_estimated": false,
-     "probability": 0.5496
+     "probability": 0.6054
+    },
+    {
+     "person": "Russell",
+     "team": "Liverpool",
+     "opponent": "Cardiff",
+     "home": true,
+     "league": "E0",
+     "bets": "over_goals:3.5",
+     "selection_text": "Over 3.5 goals Liverpool.",
+     "outcome": "won",
+     "score": "4-1",
+     "odds": 1.91,
+     "odds_estimated": true,
+     "probability": 0.5235
     },
     {
      "person": "Simon",
-     "team": "Barnsley",
-     "opponent": "Northampton",
+     "team": "Bournemouth",
+     "opponent": "Fulham",
      "home": false,
-     "league": "E2",
+     "league": "E0",
      "bets": "win",
-     "selection_text": "Barnsley",
+     "selection_text": "Bournemouth",
      "outcome": "won",
-     "score": "2-1",
-     "odds": 2.2,
+     "score": "3-0",
+     "odds": 2.4,
      "odds_estimated": false,
-     "probability": 0.4318
+     "probability": 0.4053
     }
    ],
    "complete": true,
    "won": true,
-   "odds": 11.19,
-   "returned": 223.87
+   "odds": 12.55,
+   "returned": 250.94
   }
  },
  "leaderboard": [
   {
    "person": "Peter",
-   "legs": 146,
-   "settled": 140,
-   "won": 97,
-   "hit_rate": 0.6929,
-   "expected_wins": 90.05,
-   "luck": 6.95,
+   "legs": 150,
+   "settled": 144,
+   "won": 99,
+   "hit_rate": 0.6875,
+   "expected_wins": 92.59,
+   "luck": 6.41,
    "average_odds": 1.57,
-   "sole_loser": 5,
-   "singles_profit": -9.31,
-   "scottish_legs": 27
+   "sole_loser": 6,
+   "singles_profit": -16.51,
+   "scottish_legs": 28
   },
   {
    "person": "Dom",
-   "legs": 162,
-   "settled": 153,
-   "won": 100,
-   "hit_rate": 0.6536,
-   "expected_wins": 91.9,
-   "luck": 7.1,
+   "legs": 166,
+   "settled": 154,
+   "won": 101,
+   "hit_rate": 0.6558,
+   "expected_wins": 92.47,
+   "luck": 7.53,
    "average_odds": 1.63,
-   "sole_loser": 3,
-   "singles_profit": 13.79,
+   "sole_loser": 4,
+   "singles_profit": 17.29,
    "scottish_legs": 5
   },
   {
    "person": "Russell",
-   "legs": 166,
-   "settled": 159,
+   "legs": 169,
+   "settled": 162,
    "won": 97,
-   "hit_rate": 0.6101,
-   "expected_wins": 92.62,
-   "luck": 4.38,
+   "hit_rate": 0.5988,
+   "expected_wins": 94.42,
+   "luck": 2.58,
    "average_odds": 1.68,
-   "sole_loser": 8,
-   "singles_profit": -0.99,
+   "sole_loser": 9,
+   "singles_profit": -15.99,
    "scottish_legs": 1
   },
   {
    "person": "Simon",
-   "legs": 151,
-   "settled": 145,
-   "won": 80,
-   "hit_rate": 0.5517,
-   "expected_wins": 79.41,
-   "luck": 0.59,
+   "legs": 156,
+   "settled": 150,
+   "won": 82,
+   "hit_rate": 0.5467,
+   "expected_wins": 81.8,
+   "luck": 0.2,
    "average_odds": 1.98,
-   "sole_loser": 10,
-   "singles_profit": -22.65,
+   "sole_loser": 11,
+   "singles_profit": -27.15,
    "scottish_legs": 2
   }
  ],
  "scottish": {
-  "peter_share": 0.1901,
-  "others_share": 0.0175,
-  "odds_ratio": 13.21,
+  "peter_share": 0.1918,
+  "others_share": 0.0171,
+  "odds_ratio": 13.64,
   "p_value": 0.0,
   "verdict": "Yes. Peter picks Scottish teams 19% of the time vs 2% for the rest."
  },
@@ -883,6 +883,20 @@
      "probability": 0.7614
     },
     {
+     "person": "Peter",
+     "team": "Wolves",
+     "opponent": "QPR",
+     "home": false,
+     "league": "E1",
+     "bets": "win",
+     "selection_text": "(from bet slip)",
+     "outcome": "lost",
+     "score": "1-2",
+     "odds": 2.2,
+     "odds_estimated": false,
+     "probability": 0.4425
+    },
+    {
      "person": "Russell",
      "team": "Liverpool",
      "opponent": "Huddersfield",
@@ -911,10 +925,10 @@
      "probability": 0.7796
     }
    ],
-   "complete": false,
-   "won": true,
-   "odds": 2.0,
-   "returned": null
+   "complete": true,
+   "won": false,
+   "odds": 4.4,
+   "returned": 0.0
   },
   {
    "matchday": "2017-11-04",
@@ -1159,12 +1173,26 @@
      "odds": 1.83,
      "odds_estimated": false,
      "probability": 0.5335
+    },
+    {
+     "person": "Simon",
+     "team": "Watford",
+     "opponent": "Tottenham",
+     "home": true,
+     "league": "E0",
+     "bets": "over_goals:2.5",
+     "selection_text": "(from bet slip)",
+     "outcome": "lost",
+     "score": "1-1",
+     "odds": 2.147,
+     "odds_estimated": true,
+     "probability": 0.4658
     }
    ],
-   "complete": false,
-   "won": true,
-   "odds": 3.95,
-   "returned": null
+   "complete": true,
+   "won": false,
+   "odds": 8.49,
+   "returned": 0.0
   },
   {
    "matchday": "2017-12-23",
@@ -1553,6 +1581,20 @@
    "placer": "Dom",
    "legs": [
     {
+     "person": "Dom",
+     "team": "Sheffield United",
+     "opponent": "Wigan",
+     "home": true,
+     "league": "E1",
+     "bets": "win",
+     "selection_text": "(from bet slip)",
+     "outcome": "won",
+     "score": "4-2",
+     "odds": 1.7,
+     "odds_estimated": false,
+     "probability": 0.5718
+    },
+    {
      "person": "Peter",
      "team": "Millwall",
      "opponent": "Ipswich",
@@ -1595,10 +1637,10 @@
      "probability": 0.4053
     }
    ],
-   "complete": false,
+   "complete": true,
    "won": true,
-   "odds": 7.38,
-   "returned": null
+   "odds": 12.55,
+   "returned": 250.94
   },
   {
    "matchday": "2018-11-03",
@@ -1695,6 +1737,20 @@
    "placer": "Dom",
    "legs": [
     {
+     "person": "Dom",
+     "team": "Oldham",
+     "opponent": null,
+     "home": null,
+     "league": null,
+     "bets": "win",
+     "selection_text": "(from bet slip)",
+     "outcome": "unsettled",
+     "score": null,
+     "odds": null,
+     "odds_estimated": false,
+     "probability": null
+    },
+    {
      "person": "Peter",
      "team": "Newcastle",
      "opponent": "West Ham",
@@ -1739,7 +1795,7 @@
    ],
    "complete": false,
    "won": false,
-   "odds": 4.0,
+   "odds": null,
    "returned": null
   },
   {
@@ -2555,6 +2611,20 @@
      "probability": 0.7377
     },
     {
+     "person": "Peter",
+     "team": "Brentford",
+     "opponent": "Luton",
+     "home": true,
+     "league": "E1",
+     "bets": "win",
+     "selection_text": "(from bet slip)",
+     "outcome": "won",
+     "score": "7-0",
+     "odds": 1.44,
+     "odds_estimated": false,
+     "probability": 0.6559
+    },
+    {
      "person": "Russell",
      "team": "Tottenham",
      "opponent": "Bournemouth",
@@ -2583,10 +2653,10 @@
      "probability": 0.8018
     }
    ],
-   "complete": false,
+   "complete": true,
    "won": false,
-   "odds": 2.05,
-   "returned": null
+   "odds": 2.96,
+   "returned": 0.0
   },
   {
    "matchday": "2019-12-07",
@@ -2985,6 +3055,20 @@
      "probability": 0.6045
     },
     {
+     "person": "Peter",
+     "team": "Celtic",
+     "opponent": "Ross County",
+     "home": true,
+     "league": "SC0",
+     "bets": "win",
+     "selection_text": "(from bet slip)",
+     "outcome": "won",
+     "score": "3-0",
+     "odds": 1.12,
+     "odds_estimated": false,
+     "probability": 0.817
+    },
+    {
      "person": "Russell",
      "team": "Leicester",
      "opponent": "Man City",
@@ -3013,10 +3097,10 @@
      "probability": 0.5704
     }
    ],
-   "complete": false,
+   "complete": true,
    "won": false,
-   "odds": 4.46,
-   "returned": null
+   "odds": 4.99,
+   "returned": 0.0
   },
   {
    "matchday": "2021-09-18",
@@ -3063,12 +3147,26 @@
      "odds": 2.05,
      "odds_estimated": false,
      "probability": 0.4628
+    },
+    {
+     "person": "Simon",
+     "team": "Bournemouth",
+     "opponent": "Cardiff",
+     "home": false,
+     "league": "E1",
+     "bets": "win",
+     "selection_text": "(from bet slip)",
+     "outcome": "won",
+     "score": "1-0",
+     "odds": 2.55,
+     "odds_estimated": false,
+     "probability": 0.3737
     }
    ],
-   "complete": false,
+   "complete": true,
    "won": false,
-   "odds": 3.27,
-   "returned": null
+   "odds": 8.34,
+   "returned": 0.0
   },
   {
    "matchday": "2021-09-25",
@@ -3681,12 +3779,26 @@
      "odds": 3.6,
      "odds_estimated": false,
      "probability": 0.2632
+    },
+    {
+     "person": "Simon",
+     "team": "Sunderland",
+     "opponent": "Accrington",
+     "home": false,
+     "league": "E2",
+     "bets": "win",
+     "selection_text": "(from bet slip)",
+     "outcome": "lost",
+     "score": "1-1",
+     "odds": 1.9,
+     "odds_estimated": false,
+     "probability": 0.4993
     }
    ],
-   "complete": false,
+   "complete": true,
    "won": false,
-   "odds": 8.78,
-   "returned": null
+   "odds": 16.69,
+   "returned": 0.0
   },
   {
    "matchday": "2022-02-12",
@@ -3897,6 +4009,20 @@
      "probability": 0.8501
     },
     {
+     "person": "Russell",
+     "team": "West Brom",
+     "opponent": "Swansea",
+     "home": true,
+     "league": "E1",
+     "bets": "win",
+     "selection_text": "(from bet slip)",
+     "outcome": "lost",
+     "score": "2-3",
+     "odds": 1.72,
+     "odds_estimated": false,
+     "probability": 0.5492
+    },
+    {
      "person": "Simon",
      "team": "Liverpool",
      "opponent": "Brighton",
@@ -3911,10 +4037,10 @@
      "probability": 0.7093
     }
    ],
-   "complete": false,
+   "complete": true,
    "won": false,
-   "odds": 2.21,
-   "returned": null
+   "odds": 3.81,
+   "returned": 0.0
   },
   {
    "matchday": "2022-10-08",
@@ -6691,6 +6817,20 @@
      "probability": 0.7389
     },
     {
+     "person": "Russell",
+     "team": "Leicester",
+     "opponent": "Middlesbrough",
+     "home": true,
+     "league": "E1",
+     "bets": "win",
+     "selection_text": "(from bet slip)",
+     "outcome": "lost",
+     "score": "1-2",
+     "odds": 1.57,
+     "odds_estimated": false,
+     "probability": 0.6014
+    },
+    {
      "person": "Simon",
      "team": "Leyton Orient",
      "opponent": "Burton",
@@ -6705,10 +6845,10 @@
      "probability": 0.6145
     }
    ],
-   "complete": false,
+   "complete": true,
    "won": false,
-   "odds": 2.44,
-   "returned": null
+   "odds": 3.83,
+   "returned": 0.0
   },
   {
    "matchday": "2024-03-09",
@@ -7097,6 +7237,20 @@
      "probability": 0.8761
     },
     {
+     "person": "Russell",
+     "team": "Middlesbrough",
+     "opponent": "Portsmouth",
+     "home": true,
+     "league": "E1",
+     "bets": "win",
+     "selection_text": "(from bet slip)",
+     "outcome": "lost",
+     "score": "2-2",
+     "odds": 1.45,
+     "odds_estimated": false,
+     "probability": 0.6485
+    },
+    {
      "person": "Simon",
      "team": "Fulham",
      "opponent": "Leicester",
@@ -7111,10 +7265,10 @@
      "probability": 0.524
     }
    ],
-   "complete": false,
-   "won": true,
-   "odds": 2.8,
-   "returned": null
+   "complete": true,
+   "won": false,
+   "odds": 4.06,
+   "returned": 0.0
   },
   {
    "matchday": "2024-08-31",
@@ -7293,12 +7447,26 @@
      "odds": 1.45,
      "odds_estimated": false,
      "probability": 0.6419
+    },
+    {
+     "person": "Simon",
+     "team": "Tottenham",
+     "opponent": "Brentford",
+     "home": true,
+     "league": "E0",
+     "bets": "win",
+     "selection_text": "(from bet slip)",
+     "outcome": "won",
+     "score": "3-1",
+     "odds": 1.55,
+     "odds_estimated": false,
+     "probability": 0.6149
     }
    ],
-   "complete": false,
+   "complete": true,
    "won": true,
-   "odds": 4.44,
-   "returned": null
+   "odds": 6.88,
+   "returned": 137.61
   },
   {
    "matchday": "2024-09-28",
@@ -7675,12 +7843,26 @@
      "odds": 1.25,
      "odds_estimated": false,
      "probability": 0.7458
+    },
+    {
+     "person": "Simon",
+     "team": "Sunderland",
+     "opponent": "Coventry",
+     "home": true,
+     "league": "E1",
+     "bets": "win",
+     "selection_text": "(from bet slip)",
+     "outcome": "lost",
+     "score": "2-2",
+     "odds": 2.15,
+     "odds_estimated": false,
+     "probability": 0.4374
     }
    ],
-   "complete": false,
+   "complete": true,
    "won": false,
-   "odds": 1.95,
-   "returned": null
+   "odds": 4.2,
+   "returned": 0.0
   },
   {
    "matchday": "2024-11-23",
@@ -7815,6 +7997,20 @@
    "placer": "Dom",
    "legs": [
     {
+     "person": "Dom",
+     "team": "Newcastle",
+     "opponent": "Bournemouth",
+     "home": true,
+     "league": "E0",
+     "bets": "other:0.5",
+     "selection_text": "(from bet slip)",
+     "outcome": "unsettled",
+     "score": "1-4",
+     "odds": null,
+     "odds_estimated": false,
+     "probability": null
+    },
+    {
      "person": "Peter",
      "team": "Birmingham",
      "opponent": "Exeter",
@@ -7859,7 +8055,7 @@
    ],
    "complete": false,
    "won": false,
-   "odds": 3.98,
+   "odds": null,
    "returned": null
   },
   {
@@ -8669,6 +8865,20 @@
      "probability": 0.5508
     },
     {
+     "person": "Peter",
+     "team": "Ipswich",
+     "opponent": "Derby",
+     "home": true,
+     "league": "E1",
+     "bets": "win",
+     "selection_text": "(from bet slip)",
+     "outcome": "lost",
+     "score": "2-2",
+     "odds": 1.49,
+     "odds_estimated": false,
+     "probability": 0.6206
+    },
+    {
      "person": "Russell",
      "team": "Brentford",
      "opponent": "Sunderland",
@@ -8697,10 +8907,10 @@
      "probability": 0.5483
     }
    ],
-   "complete": false,
+   "complete": true,
    "won": false,
-   "odds": 6.98,
-   "returned": null
+   "odds": 10.39,
+   "returned": 0.0
   },
   {
    "matchday": "2025-09-06",
@@ -9542,6 +9752,20 @@
    "matchday": "2026-01-10",
    "placer": "unknown",
    "legs": [
+    {
+     "person": "Dom",
+     "team": "Brentford",
+     "opponent": null,
+     "home": null,
+     "league": null,
+     "bets": "win",
+     "selection_text": "(from bet slip)",
+     "outcome": "unsettled",
+     "score": null,
+     "odds": null,
+     "odds_estimated": false,
+     "probability": null
+    },
     {
      "person": "Peter",
      "team": "Cardiff",
