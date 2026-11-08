@@ -1,18 +1,19 @@
-"""akka CLI. Run from the repo root:
+"""aker CLI. Run from the repo root:
 
-    uv run --project pipeline akka parse            # data/raw/_chat.txt → data/interim/messages.csv
-    uv run --project pipeline akka results          # download results + odds
-    uv run --project pipeline akka extract-claude   # needs ANTHROPIC_API_KEY
-    uv run --project pipeline akka extract-jev      # needs TYPESAFE_API_KEY
-    uv run --project pipeline akka review           # merge → data/picks_review.csv
+    uv run --project pipeline aker parse            # data/raw/_chat.txt → data/interim/messages.csv
+    uv run --project pipeline aker results          # download results + odds
+    uv run --project pipeline aker extract-claude   # needs ANTHROPIC_API_KEY
+    uv run --project pipeline aker extract-jev      # needs TYPESAFE_API_KEY
+    uv run --project pipeline aker review           # merge → data/picks_review.csv
+    uv run --project pipeline aker push | pull      # sync data/raw + data/interim with the GCS bucket
 """
 import argparse
 import logging
 import sys
 from collections import Counter
 
-from akka import chat, extract_claude, extract_jev, results, review
-from akka.config import DATA_DIR, RAW_CHAT
+from aker import chat, extract_claude, extract_jev, results, review, storage
+from aker.config import DATA_DIR, RAW_CHAT
 
 
 def _parse() -> None:
@@ -48,14 +49,16 @@ COMMANDS = {
     "extract-claude": _extract_claude,
     "extract-jev": _extract_jev,
     "review": _review,
+    "push": lambda: storage.sync("push"),
+    "pull": lambda: storage.sync("pull"),
 }
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="akka")
+    parser = argparse.ArgumentParser(prog="aker")
     parser.add_argument("command", choices=COMMANDS)
     args = parser.parse_args()
     if not DATA_DIR.is_dir():
-        sys.exit(f"No {DATA_DIR}/ here: run from the repo root (or set AKKA_DATA_DIR).")
+        sys.exit(f"No {DATA_DIR}/ here: run from the repo root (or set AKER_DATA_DIR).")
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     COMMANDS[args.command]()

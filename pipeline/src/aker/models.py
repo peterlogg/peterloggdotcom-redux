@@ -42,7 +42,7 @@ class Message:
 
 @dataclass(frozen=True)
 class ChatWindow:
-    """Friday 18:00 → Saturday 23:59 of chat around one akka Saturday."""
+    """Friday 18:00 → Saturday 23:59 of chat around one aker Saturday."""
 
     saturday: date
     messages: tuple[Message, ...]
@@ -80,9 +80,9 @@ class Pick(BaseModel):
 class Week(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    akka_on: bool = Field(description="True if the group accumulator was organised with picks this Saturday")
+    aker_on: bool = Field(description="True if the group accumulator was organised with picks this Saturday")
     placer: Person | Literal["unknown"]
-    picks: list[Pick] = Field(description="One entry per person who made a pick; empty if no akka")
+    picks: list[Pick] = Field(description="One entry per person who made a pick; empty if no aker")
     notes: str = Field(description="Anything odd: picks changed, someone picked for another, bet void, etc.")
 
 
@@ -109,7 +109,7 @@ class JevPick:
 @dataclass(frozen=True)
 class JevWeek:
     saturday: date
-    akka_on: float  # P(akka organised this week)
+    aker_on: float  # P(aker organised this week)
     placer: str
     placer_confidence: float
     picks: tuple[JevPick, ...]

@@ -1,4 +1,4 @@
-"""Extract each Saturday's akka picks with Claude, via LangChain structured output.
+"""Extract each Saturday's aker picks with Claude, via LangChain structured output.
 
 Only windows not already in picks_claude.jsonl are sent, so re-running picks up new weeks.
 """
@@ -8,10 +8,10 @@ from collections.abc import Sequence
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from akka.config import CLAUDE_MODEL, CLAUDE_PICKS
-from akka.models import NO_TEAM, ChatWindow, ClaudeWeek, Week
-from akka.prompts import AKKA_CONTEXT
-from akka.results import clubs
+from aker.config import CLAUDE_MODEL, CLAUDE_PICKS
+from aker.models import NO_TEAM, ChatWindow, ClaudeWeek, Week
+from aker.prompts import AKER_CONTEXT
+from aker.results import clubs
 
 log = logging.getLogger(__name__)
 CONCURRENCY = 8
@@ -20,10 +20,10 @@ CONCURRENCY = 8
 def _system_prompt() -> str:
     club_list = "\n".join(f"- {c.name}: {c.description}" for c in clubs())
     return (
-        f"{AKKA_CONTEXT}\n\n"
+        f"{AKER_CONTEXT}\n\n"
         "Extract that Saturday's accumulator from the chat. "
         "If someone picked on someone else's behalf, attribute it to the person whose leg it is. "
-        "If there's no akka that week (international break, off-season, nobody picks), set akka_on false and picks empty.\n\n"
+        "If there's no aker that week (international break, off-season, nobody picks), set aker_on false and picks empty.\n\n"
         f"Use these canonical club names for `team` (or {NO_TEAM} if the selection isn't one of them):\n{club_list}"
     )
 

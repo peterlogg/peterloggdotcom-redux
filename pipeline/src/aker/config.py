@@ -2,7 +2,7 @@
 import os
 from pathlib import Path
 
-DATA_DIR = Path(os.environ.get("AKKA_DATA_DIR", "data"))
+DATA_DIR = Path(os.environ.get("AKER_DATA_DIR", "data"))
 
 RAW_CHAT = DATA_DIR / "raw" / "_chat.txt"
 INTERIM_DIR = DATA_DIR / "interim"  # gitignored: derived from private messages
@@ -22,8 +22,12 @@ SENDER_ALIASES = {
 }
 PEOPLE = tuple(sorted(SENDER_ALIASES.values()))
 
-FIRST_SATURDAY = "2016-08-01"  # earliest plausible akka; extractors flag weeks with no bet
+FIRST_SATURDAY = "2016-08-01"  # earliest plausible aker; extractors flag weeks with no bet
 OFF_SEASON_MONTHS = frozenset({6, 7})
 
 CLAUDE_MODEL = "claude-opus-5-5"
 JEV_MODEL = "jev-latest"
+
+# Private data (raw chat + extraction outputs) is kept in a private GCS bucket, not git.
+BUCKET = os.environ.get("AKER_BUCKET", "gs://peterloggdotcom-redux")
+SYNCED_DIRS = ("raw", "interim")

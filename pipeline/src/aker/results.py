@@ -4,8 +4,8 @@ from functools import cache
 import pandas as pd
 import requests
 
-from akka.config import RESULTS_CSV, RESULTS_DIR
-from akka.models import Club
+from aker.config import RESULTS_CSV, RESULTS_DIR
+from aker.models import Club
 
 LEAGUES = {
     "E0": "Premier League", "E1": "Championship", "E2": "League One", "E3": "League Two",
@@ -23,7 +23,7 @@ def _download(season: str, league: str) -> bool:
     path = RESULTS_DIR / f"{season}_{league}.csv"
     if path.exists() and season != CURRENT_SEASON:  # past seasons never change
         return True
-    r = requests.get(URL.format(season=season, league=league), timeout=30, headers={"User-Agent": "akka-stats"})
+    r = requests.get(URL.format(season=season, league=league), timeout=30, headers={"User-Agent": "aker-stats"})
     if r.status_code != 200 or not r.text.strip():
         return False
     path.write_bytes(r.content)

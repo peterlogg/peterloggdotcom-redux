@@ -10,18 +10,18 @@ import csv
 from collections import Counter
 from dataclasses import asdict, fields
 
-from akka.config import PEOPLE, PICKS_REVIEW_CSV
-from akka.extract_claude import load_claude_weeks
-from akka.extract_jev import load_jev_weeks
-from akka.models import NO_TEAM, ClaudeWeek, JevPick, JevWeek, Pick, ReviewRow, ReviewStatus
+from aker.config import PEOPLE, PICKS_REVIEW_CSV
+from aker.extract_claude import load_claude_weeks
+from aker.extract_jev import load_jev_weeks
+from aker.models import NO_TEAM, ClaudeWeek, JevPick, JevWeek, Pick, ReviewRow, ReviewStatus
 
-JEV_AKKA_THRESHOLD = 0.5
+JEV_AKER_THRESHOLD = 0.5
 JEV_PICKED_THRESHOLD = 0.5
 JEV_CONFIDENCE_THRESHOLD = 0.6
 
 
 def _jev_team(week: JevWeek | None, pick: JevPick | None) -> str:
-    if week and pick and week.akka_on >= JEV_AKKA_THRESHOLD and pick.picked >= JEV_PICKED_THRESHOLD:
+    if week and pick and week.aker_on >= JEV_AKER_THRESHOLD and pick.picked >= JEV_PICKED_THRESHOLD:
         return pick.team
     return NO_TEAM
 
@@ -36,7 +36,7 @@ def _status(claude_team: str, jev_team: str, claude: Pick | None, jev: JevPick |
 
 def _rows_for_week(claude_week: ClaudeWeek | None, jev_week: JevWeek | None) -> list[ReviewRow]:
     saturday = (claude_week or jev_week).saturday
-    claude_picks = {p.person: p for p in claude_week.picks} if claude_week and claude_week.akka_on else {}
+    claude_picks = {p.person: p for p in claude_week.picks} if claude_week and claude_week.aker_on else {}
     rows = []
     for person in PEOPLE:
         claude = claude_picks.get(person)

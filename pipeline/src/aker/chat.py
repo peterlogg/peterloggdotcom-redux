@@ -10,8 +10,8 @@ from collections.abc import Iterator
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from akka.config import FIRST_SATURDAY, MESSAGES_CSV, OFF_SEASON_MONTHS, SENDER_ALIASES
-from akka.models import ChatWindow, Message
+from aker.config import FIRST_SATURDAY, MESSAGES_CSV, OFF_SEASON_MONTHS, SENDER_ALIASES
+from aker.models import ChatWindow, Message
 
 IOS = re.compile(r"^\[(\d{1,2}/\d{1,2}/\d{2,4}),\s*(\d{1,2}:\d{2})(?::\d{2})?\]\s*([^:]+?):\s?(.*)$")
 ANDROID = re.compile(r"^(\d{1,2}/\d{1,2}/\d{2,4}),\s*(\d{1,2}:\d{2})\s*-\s*([^:]+?):\s?(.*)$")
@@ -54,7 +54,7 @@ def read_messages(path: Path = MESSAGES_CSV) -> Iterator[Message]:
             yield Message(datetime.fromisoformat(row["sent_at"]), row["sender"], row["text"])
 
 
-def _akka_saturday(ts: datetime) -> date | None:
+def _aker_saturday(ts: datetime) -> date | None:
     """The Saturday a message belongs to: Friday from 18:00, or any time on Saturday."""
     if ts.weekday() == 4 and ts.hour >= 18:
         return ts.date() + timedelta(days=1)
@@ -67,7 +67,7 @@ def saturday_windows(messages: Iterator[Message] | None = None) -> list[ChatWind
     first = date.fromisoformat(FIRST_SATURDAY)
     grouped: dict[date, list[Message]] = defaultdict(list)
     for m in messages if messages is not None else read_messages():
-        sat = _akka_saturday(m.sent_at)
+        sat = _aker_saturday(m.sent_at)
         if sat and sat >= first and sat.month not in OFF_SEASON_MONTHS:
             grouped[sat].append(m)
     return [ChatWindow(sat, tuple(msgs)) for sat, msgs in sorted(grouped.items())]

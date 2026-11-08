@@ -8,10 +8,10 @@ from collections.abc import Sequence
 
 from typesafe_sdk import AsyncTypeSafeClient, Choice, Noul, SystemOneResponse
 
-from akka.config import JEV_MODEL, JEV_PICKS, PEOPLE
-from akka.models import MARKET_DESCRIPTIONS, NO_TEAM, ChatWindow, JevPick, JevWeek, Market
-from akka.prompts import AKKA_CONTEXT
-from akka.results import clubs
+from aker.config import JEV_MODEL, JEV_PICKS, PEOPLE
+from aker.models import MARKET_DESCRIPTIONS, NO_TEAM, ChatWindow, JevPick, JevWeek, Market
+from aker.prompts import AKER_CONTEXT
+from aker.results import clubs
 
 log = logging.getLogger(__name__)
 CONCURRENCY = 8
@@ -22,7 +22,7 @@ def _questions() -> dict[str, Choice | Noul]:
         c.name: c.description for c in clubs()
     }
     questions: dict[str, Choice | Noul] = {
-        "akka_on": Noul(instructions="The friends organised their group accumulator bet with team picks on this Saturday."),
+        "aker_on": Noul(instructions="The friends organised their group accumulator bet with team picks on this Saturday."),
         "placer": Choice(
             instructions="Who placed (put on) the group accumulator bet this week",
             criteria={p: None for p in PEOPLE} | {"unknown": "Not clear from the chat"},
@@ -59,7 +59,7 @@ def _to_week(window: ChatWindow, response: SystemOneResponse) -> JevWeek:
 
     return JevWeek(
         saturday=window.saturday,
-        akka_on=a["akka_on"].noul,
+        aker_on=a["aker_on"].noul,
         placer=a["placer"].choice,
         placer_confidence=a["placer"].confidence,
         picks=tuple(pick(p) for p in PEOPLE),
@@ -78,7 +78,7 @@ async def _extract(todo: Sequence[ChatWindow]) -> int:
     sem = asyncio.Semaphore(CONCURRENCY)
 
     async def classify(client: AsyncTypeSafeClient, window: ChatWindow) -> JevWeek:
-        state = {"context": AKKA_CONTEXT, "saturday": window.saturday.isoformat(), "chat": window.transcript}
+        state = {"context": AKER_CONTEXT, "saturday": window.saturday.isoformat(), "chat": window.transcript}
         async with sem:
             return _to_week(window, await client.system_one(state=state, questions=questions))
 

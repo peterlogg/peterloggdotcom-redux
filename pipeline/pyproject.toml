@@ -1,7 +1,7 @@
 [project]
-name = "akka"
+name = "aker"
 version = "0.1.0"
-description = "Extract and analyse the weekly akka accumulator from WhatsApp history"
+description = "Extract and analyse the weekly aker accumulator from WhatsApp history"
 requires-python = ">=3.11"
 dependencies = [
     "pandas>=2.2",
@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.scripts]
-akka = "akka.cli:main"
+aker = "aker.cli:main"
 
 [build-system]
 requires = ["hatchling"]
